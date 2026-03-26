@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crea un Dashboard con IA — Guía Paso a Paso</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+  :root {
+    --blue:       #004BFF;
+    --blue-dark:  #0038CC;
+    --blue-deep:  #002899;
+    --blue-light: #EBF0FF;
+    --blue-mid:   #C5D4FF;
+    --blue-soft:  #F0F4FF;
+    --cyan:       #00C2FF;
+    --violet:     #7B5CF5;
+    --amber:      #FF9500;
+    --rose:       #FF3B5C;
+    --green:      #00C48C;
+    --bg:         #FFFFFF;
+    --surface:    #F7F9FF;
+    --surface2:   #EFF3FF;
+    --border:     rgba(0,75,255,0.10);
+    --border2:    rgba(0,75,255,0.18);
+    --text:       #0A0F2E;
+    --muted:      #5A6380;
+    --muted2:     #9AA0B8;
+    --font: 'Poppins', sans-serif;
+  }
+ 
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+ 
+  .wrap { max-width: 800px; margin: 0 auto; padding: 0 28px; }
+ 
+  /* HERO */
+  .hero {
+    padding: 64px 0 52px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 700px; height: 340px;
+    background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,75,255,0.07) 0%, transparent 100%);
+    pointer-events: none;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--blue-light); border: 1px solid var(--blue-mid);
+    color: var(--blue); font-size: 11px; font-weight: 600;
+    padding: 5px 16px; border-radius: 100px;
+    margin-bottom: 22px; letter-spacing: 0.07em; text-transform: uppercase;
+    animation: fadeDown 0.5s ease both;
+  }
+  .pill-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--blue); flex-shrink: 0;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)}
+  }
+  .hero h1 {
+    font-size: clamp(30px,5.5vw,50px); font-weight: 800;
+    line-height: 1.1; letter-spacing: -0.025em;
+    margin-bottom: 14px; color: var(--text);
+    animation: fadeDown 0.5s 0.1s ease both;
+  }
+  .hero h1 em { font-style: normal; color: var(--blue); }
+  .hero-sub {
+    font-size: 15px; font-weight: 400; color: var(--muted);
+    max-width: 460px; margin: 0 auto 28px;
+    animation: fadeDown 0.5s 0.2s ease both;
+  }
+  .hero-chips {
+    display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+    animation: fadeDown 0.5s 0.3s ease both;
+  }
+  .chip {
+    font-size: 12px; font-weight: 500;
+    background: var(--surface); border: 1px solid var(--border2);
+    color: var(--muted); padding: 5px 14px; border-radius: 8px;
+  }
+ 
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--blue-mid), transparent);
+    margin: 8px 0 44px;
+  }
+ 
+  /* CASE BANNER */
+  .case-header {
+    background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+    border-radius: 16px; padding: 24px 28px; margin-bottom: 48px;
+    display: flex; align-items: flex-start; gap: 20px;
+    animation: fadeUp 0.5s 0.35s ease both;
+    position: relative; overflow: hidden;
+  }
+  .case-header::after {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: rgba(255,255,255,0.06); pointer-events: none;
+  }
+  .case-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .case-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.6); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
+  .case-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+  .case-desc { font-size: 13px; font-weight: 300; color: rgba(255,255,255,0.75); line-height: 1.55; }
+ 
+  /* STEPS */
+  .steps { display: flex; flex-direction: column; }
+  .step {
+    display: grid; grid-template-columns: 52px 1fr; gap: 0 18px;
+    opacity: 0; transform: translateY(18px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .step.visible { opacity: 1; transform: translateY(0); }
+  .step-left { display: flex; flex-direction: column; align-items: center; }
+  .step-num-wrap {
+    width: 48px; height: 48px; flex-shrink: 0; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; font-weight: 700; position: relative; z-index: 1;
+  }
+  .step-num-wrap.s1 { background: var(--blue-light); border: 1.5px solid var(--blue); color: var(--blue); }
+  .step-num-wrap.s2 { background: #E6F8FF; border: 1.5px solid var(--cyan); color: #007FAA; }
+  .step-num-wrap.s3 { background: #FFF5E6; border: 1.5px solid var(--amber); color: #CC7700; }
+  .step-num-wrap.s4 { background: #F0EBFF; border: 1.5px solid var(--violet); color: var(--violet); }
+  .step-line {
+    flex: 1; width: 2px; min-height: 28px;
+    background: linear-gradient(to bottom, var(--blue-mid), transparent);
+    margin: 6px 0; border-radius: 2px;
+  }
+  .step:last-child .step-line { display: none; }
+  .step-body { padding-bottom: 36px; }
+  .step-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 5px; padding-top: 12px; }
+  .step-label.s1 { color: var(--blue); }
+  .step-label.s2 { color: #007FAA; }
+  .step-label.s3 { color: #CC7700; }
+  .step-label.s4 { color: var(--violet); }
+  .step-title { font-size: 19px; font-weight: 700; margin-bottom: 8px; line-height: 1.25; color: var(--text); }
+  .step-desc { font-size: 14px; font-weight: 400; color: var(--muted); line-height: 1.7; margin-bottom: 14px; }
+ 
+  /* CARDS */
+  .card { background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; overflow: hidden; }
+  .card-header {
+    padding: 9px 16px; border-bottom: 1px solid var(--border);
+    font-size: 11px; font-weight: 500; color: var(--muted2);
+    letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;
+    background: var(--surface2);
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-r { background: #FF5F57; } .dot-y { background: #FEBC2E; } .dot-g { background: #28C840; }
+ 
+  /* DATA TABLE */
+  .table-scroll { overflow-x: auto; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 460px; }
+  .data-table th {
+    padding: 9px 14px; text-align: left; color: var(--blue); font-weight: 600; font-size: 11px;
+    border-bottom: 1px solid var(--border2); background: var(--blue-soft);
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .data-table td { padding: 9px 14px; color: var(--text); border-bottom: 1px solid var(--border); }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table td:first-child { color: var(--muted); font-weight: 500; }
+  .num { text-align: right; font-weight: 500; }
+ 
+  /* PROMPT CARD */
+  .prompt-card { background: var(--blue-soft); border: 1px solid var(--blue-mid); border-radius: 12px; overflow: hidden; }
+  .prompt-header {
+    padding: 10px 16px; border-bottom: 1px solid var(--blue-mid);
+    display: flex; align-items: center; gap: 8px; background: var(--blue-light);
+    font-size: 11px; font-weight: 600; color: var(--blue); letter-spacing: 0.07em; text-transform: uppercase;
+  }
+  .prompt-body { padding: 18px 20px; }
+  .prompt-intro { font-size: 13px; font-weight: 400; color: var(--blue-dark); line-height: 1.7; margin-bottom: 14px; font-style: italic; }
+  .prompt-parts { display: flex; flex-direction: column; gap: 8px; }
+  .prompt-part {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: #fff; border: 1px solid var(--border2); border-radius: 8px; padding: 11px 14px;
+  }
+  .part-letter { font-size: 12px; font-weight: 700; color: var(--blue); min-width: 18px; }
+  .part-text { font-size: 13px; font-weight: 400; color: var(--text); line-height: 1.5; }
+  .part-text strong { color: var(--blue); font-weight: 600; }
+ 
+  /* VERIFY */
+  .verify-card {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-left: 3px solid var(--amber); border-radius: 8px; padding: 16px 18px;
+  }
+  .verify-title { font-size: 10px; font-weight: 700; color: #CC7700; letter-spacing: 0.09em; text-transform: uppercase; margin-bottom: 10px; }
+  .verify-formula { font-size: 13px; font-weight: 400; color: var(--text); line-height: 1.9; }
+  .v-label { color: var(--muted); min-width: 90px; display: inline-block; }
+  .v-val { color: var(--blue-dark); }
+  .v-result { color: var(--green); font-weight: 600; }
+ 
+  /* RESULTS */
+  .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .result-card { border-radius: 12px; padding: 16px 18px; }
+  .result-card.win { background: #EDFAF5; border: 1px solid #A3E6CC; }
+  .result-card.lose { background: #FFF0F3; border: 1px solid #FFBDCA; }
+  .rc-label { font-size: 10px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; margin-bottom: 4px; }
+  .rc-label.win { color: var(--green); } .rc-label.lose { color: var(--rose); }
+  .rc-name { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .rc-stat { font-size: 12px; font-weight: 600; }
+  .rc-stat.win { color: var(--green); } .rc-stat.lose { color: var(--rose); }
+ 
+  .actions-list { display: flex; flex-direction: column; gap: 8px; }
+  .action-item {
+    display: flex; gap: 14px; align-items: flex-start;
+    background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; padding: 13px 16px;
+  }
+  .action-num { font-size: 12px; font-weight: 700; color: var(--blue); min-width: 22px; padding-top: 1px; }
+  .action-text { font-size: 13px; font-weight: 400; color: var(--muted); line-height: 1.55; }
+  .action-text strong { color: var(--text); font-weight: 600; }
+ 
+  /* DASHBOARD SECTION */
+  .dashboard-section { margin-top: 52px; margin-bottom: 64px; }
+  .section-eyebrow { font-size: 10px; font-weight: 700; color: var(--blue); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
+  .section-heading { font-size: 26px; font-weight: 800; margin-bottom: 6px; line-height: 1.2; color: var(--text); }
+  .section-sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; font-weight: 400; }
+ 
+  .dash-frame { background: #0D1330; border-radius: 16px; overflow: hidden; border: 1px solid rgba(0,75,255,0.3); }
+  .dash-topbar { padding: 11px 18px; background: #12183A; display: flex; align-items: center; gap: 8px; }
+  .dash-topbar span { font-size: 11px; color: #5A6A9A; margin-left: 10px; font-weight: 400; }
+  .dash-inner { padding: 18px; }
+ 
+  .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 16px; }
+  .kpi { background: #161D45; border: 1px solid rgba(0,75,255,0.25); border-radius: 10px; padding: 14px 12px; }
+  .kpi-l { font-size: 9px; font-weight: 600; color: #4A5A90; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+  .kpi-v { font-size: 20px; font-weight: 700; color: #fff; }
+  .kpi-d { font-size: 10px; font-weight: 500; margin-top: 2px; }
+ 
+  .charts-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .chart-box { background: #161D45; border-radius: 10px; padding: 14px; border: 1px solid rgba(0,75,255,0.2); }
+  .chart-box-title { font-size: 11px; font-weight: 500; color: #7A8AB0; margin-bottom: 10px; }
+ 
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+  .lg-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #5A6A90; }
+  .lg-sq { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+ 
+  .dash-table-wrap { overflow-x: auto; }
+  .dash-table { width: 100%; font-size: 11px; border-collapse: collapse; min-width: 400px; }
+  .dash-table th { padding: 6px 10px; text-align: left; color: #4A5A90; font-size: 10px; font-weight: 600; border-bottom: 1px solid rgba(0,75,255,0.15); text-transform: uppercase; letter-spacing: 0.06em; }
+  .dash-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #C8D0F0; }
+  .dash-table tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+  .badge-g { background: rgba(0,196,140,0.15); color: #00C48C; }
+  .badge-r { background: rgba(255,59,92,0.15); color: #FF3B5C; }
+ 
+  /* FOOTER */
+  .footer { padding: 24px 0 44px; text-align: center; }
+  .footer-text { font-size: 12px; color: var(--muted2); }
+  .footer-text a { color: var(--blue); text-decoration: none; font-weight: 500; }
+ 
+  /* ANIMATIONS */
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-14px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUp   { from{opacity:0;transform:translateY(16px)}  to{opacity:1;transform:translateY(0)} }
+ 
+  @media (max-width: 580px) {
+    .kpi-row { grid-template-columns: 1fr 1fr; }
+    .charts-row { grid-template-columns: 1fr; }
+    .result-grid { grid-template-columns: 1fr; }
+    .case-header { flex-direction: column; }
+  }
+</style>
+</head><body><div class="wrap"><!-- HERO -->
+<section class="hero">
+<div class="hero-bg"></div>
+<div class="pill"><span class="pill-dot"></span>Guía práctica · Claude AI</div>
+<h1>Crea un <em>Dashboard</em><br>con Inteligencia Artificial</h1>
+<p class="hero-sub">Sin Excel avanzado. Sin programar. Solo describe tus datos y la IA hace el análisis completo.</p>
+<div class="hero-chips"><span class="chip">✦ Análisis de datos</span> <span class="chip">✦ Prompts efectivos</span> <span class="chip">✦ Visualización automática</span></div>
+</section>
+<div class="divider"></div>
+<!-- CASO -->
+<div class="case-header">
+<div class="case-icon">☕</div>
+<div>
+<div class="case-label">Caso hipotético</div>
+<div class="case-title">Ventas de una cafetería universitaria — Primer semestre</div>
+<div class="case-desc">Eres estudiante de Administración y tienes una tabla con ventas de 4 productos durante 6 meses. Quieres analizarla sin usar fórmulas complejas. Usarás Claude AI para obtener totales, tendencias y recomendaciones en segundos.</div>
+</div>
+</div>
+<!-- STEPS -->
+<div class="steps"><!-- PASO 1 -->
+<div class="step">
+<div class="step-left">
+<div class="step-num-wrap s1">1</div>
+<div class="step-line"></div>
+</div>
+<div class="step-body">
+<div class="step-label s1">Paso 01 · Preparar los datos</div>
+<div class="step-title">Pega tu tabla directamente en el chat</div>
+<div class="step-desc">No necesitas subir archivos. Copia y pega la tabla tal como está. Claude entiende texto plano, tablas con espacios y hasta datos desordenados.</div>
+<div class="card">
+<div class="card-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span> tabla_ventas_cafeteria.txt</div>
+<div class="table-scroll">
+<table class="data-table">
+<thead>
+<tr>
+<th>Producto</th>
+<th class="num">Ene</th>
+<th class="num">Feb</th>
+<th class="num">Mar</th>
+<th class="num">Abr</th>
+<th class="num">May</th>
+<th class="num">Jun</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Café Premium</td>
+<td class="num">120</td>
+<td class="num">135</td>
+<td class="num">128</td>
+<td class="num">145</td>
+<td class="num">160</td>
+<td class="num">155</td>
+</tr>
+<tr>
+<td>Té Orgánico</td>
+<td class="num">80</td>
+<td class="num">75</td>
+<td class="num">90</td>
+<td class="num">95</td>
+<td class="num">88</td>
+<td class="num">102</td>
+</tr>
+<tr>
+<td>Smoothies</td>
+<td class="num">45</td>
+<td class="num">50</td>
+<td class="num">68</td>
+<td class="num">85</td>
+<td class="num">110</td>
+<td class="num">130</td>
+</tr>
+<tr>
+<td>Galletas</td>
+<td class="num">200</td>
+<td class="num">180</td>
+<td class="num">175</td>
+<td class="num">160</td>
+<td class="num">155</td>
+<td class="num">140</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<!-- PASO 2 -->
+<div class="step">
+<div class="step-left">
+<div class="step-num-wrap s2">2</div>
+<div class="step-line"></div>
+</div>
+<div class="step-body">
+<div class="step-label s2">Paso 02 · Escribir el prompt</div>
+<div class="step-title">Dale contexto y dile exactamente qué necesitas</div>
+<div class="step-desc">Un buen prompt tiene 3 partes: <strong style="color: var(--text);">quién eres</strong>, <strong style="color: var(--text);">qué son los datos</strong> y <strong style="color: var(--text);">qué quieres obtener</strong>. Copia este modelo y envíalo:</div>
+<div class="prompt-card">
+<div class="prompt-header">✦ &nbsp;Prompt — cópialo y envíalo a Claude</div>
+<div class="prompt-body">
+<p class="prompt-intro">"Soy estudiante de Administración analizando las ventas (en unidades) de una cafetería durante el primer semestre. Por favor:"</p>
+<div class="prompt-parts">
+<div class="prompt-part"><span class="part-letter">(a)</span><span class="part-text">Calcula el <strong>total y promedio mensual</strong> de cada producto.</span></div>
+<div class="prompt-part"><span class="part-letter">(b)</span><span class="part-text">Identifica qué producto <strong>creció más</strong> y cuál <strong>decreció</strong>.</span></div>
+<div class="prompt-part"><span class="part-letter">(c)</span><span class="part-text">Sugiere <strong>2 acciones</strong> que el gerente debería tomar basado en estos datos.</span></div>
+<div class="prompt-part"><span class="part-letter">(d)</span><span class="part-text">Recomienda qué <strong>tipo de gráfico</strong> usar para presentar esto.</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- PASO 3 -->
+<div class="step">
+<div class="step-left">
+<div class="step-num-wrap s3">3</div>
+<div class="step-line"></div>
+</div>
+<div class="step-body">
+<div class="step-label s3">Paso 03 · Verificar los cálculos</div>
+<div class="step-title">Siempre revisa los números manualmente</div>
+<div class="step-desc">La IA puede equivocarse. Comprueba al menos un resultado para validar. La fórmula es simple: <strong style="color: var(--text);">Total = suma de los 6 meses</strong> y <strong style="color: var(--text);">Promedio = Total ÷ 6</strong>.</div>
+<div class="verify-card">
+<div class="verify-title">Verificación de ejemplo — Smoothies</div>
+<div class="verify-formula"><span class="v-label">Total</span><span class="v-val">= 45 + 50 + 68 + 85 + 110 + 130</span> → <span class="v-result">488 unidades ✓</span><br><span class="v-label">Promedio</span><span class="v-val">= 488 ÷ 6</span> → <span class="v-result">81.3 unidades/mes ✓</span><br><span class="v-label">Crecimiento</span><span class="v-val">= (130 − 45) ÷ 45 × 100</span> → <span class="v-result">+188.9% ✓</span></div>
+</div>
+</div>
+</div>
+<!-- PASO 4 -->
+<div class="step">
+<div class="step-left">
+<div class="step-num-wrap s4">4</div>
+<div class="step-line"></div>
+</div>
+<div class="step-body">
+<div class="step-label s4">Paso 04 · Leer los hallazgos</div>
+<div class="step-title">Interpreta lo que la IA encontró</div>
+<div class="step-desc">Así responde Claude a los puntos (b) y (c) del prompt. Estos son los hallazgos clave y las acciones recomendadas para el gerente:</div>
+<div class="result-grid">
+<div class="result-card win">
+<div class="rc-label win">Mayor crecimiento</div>
+<div class="rc-name">Smoothies</div>
+<div class="rc-stat win">+189% en 6 meses</div>
+</div>
+<div class="result-card lose">
+<div class="rc-label lose">Mayor caída</div>
+<div class="rc-name">Galletas</div>
+<div class="rc-stat lose">–30% en 6 meses</div>
+</div>
+</div>
+<div class="actions-list">
+<div class="action-item"><span class="action-num">01</span> <span class="action-text"><strong>Impulsar los Smoothies:</strong> ampliar sabores, crear combos y aumentar stock. Con la trayectoria actual superarán al Café Premium en julio.</span></div>
+<div class="action-item"><span class="action-num">02</span> <span class="action-text"><strong>Investigar la caída de Galletas:</strong> hacer encuesta a clientes para entender si hay un competidor, cambio de receta o pérdida de interés.</span></div>
+</div>
+</div>
+</div>
+</div>
+<!-- DASHBOARD RESULTADO -->
+<section class="dashboard-section">
+<div class="section-eyebrow">Resultado final</div>
+<div class="section-heading">El dashboard generado por la IA</div>
+<div class="section-sub">Esto es lo que obtienes después de seguir los 4 pasos: análisis visual completo, listo para presentar.</div>
+<div class="dash-frame">
+<div class="dash-topbar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span> <span>Dashboard · Cafetería · Primer Semestre</span></div>
+<div class="dash-inner">
+<div class="kpi-row">
+<div class="kpi">
+<div class="kpi-l">Total unidades</div>
+<div class="kpi-v">3,135</div>
+<div class="kpi-d" style="color: #4a5a90;">Ene – Jun</div>
+</div>
+<div class="kpi">
+<div class="kpi-l">Producto estrella</div>
+<div class="kpi-v" style="font-size: 15px; padding-top: 4px;">Smoothies</div>
+<div class="kpi-d" style="color: #00c48c;">+189% crecimiento</div>
+</div>
+<div class="kpi">
+<div class="kpi-l">Producto en riesgo</div>
+<div class="kpi-v" style="font-size: 15px; padding-top: 4px;">Galletas</div>
+<div class="kpi-d" style="color: #ff3b5c;">–30% caída</div>
+</div>
+<div class="kpi">
+<div class="kpi-l">Mejor mes</div>
+<div class="kpi-v">Junio</div>
+<div class="kpi-d" style="color: #4a5a90;">527 unidades</div>
+</div>
+</div>
+<div class="charts-row">
+<div class="chart-box">
+<div class="chart-box-title">Tendencias mensuales por producto</div>
+<div class="legend"><span class="lg-item"><span class="lg-sq" style="background: #4F8EF7;"></span>Café Premium</span> <span class="lg-item"><span class="lg-sq" style="background: #00C2FF;"></span>Té Orgánico</span> <span class="lg-item"><span class="lg-sq" style="background: #FFB547;"></span>Smoothies</span> <span class="lg-item"><span class="lg-sq" style="background: #FF3B5C;"></span>Galletas</span></div>
+<div style="position: relative; height: 180px;"><canvas id="lineChart"></canvas></div>
+</div>
+<div class="chart-box">
+<div class="chart-box-title">Participación total del semestre</div>
+<div style="position: relative; height: 148px;"><canvas id="donutChart"></canvas></div>
+<div class="legend" style="margin-top: 8px; justify-content: center;"><span class="lg-item"><span class="lg-sq" style="background: #4F8EF7;"></span>Café 27%</span> <span class="lg-item"><span class="lg-sq" style="background: #00C2FF;"></span>Té 17%</span> <span class="lg-item"><span class="lg-sq" style="background: #FFB547;"></span>Smoo 16%</span> <span class="lg-item"><span class="lg-sq" style="background: #FF3B5C;"></span>Gall 32%</span></div>
+</div>
+</div>
+<div class="chart-box">
+<div class="chart-box-title" style="margin-bottom: 10px;">Resumen calculado por la IA</div>
+<div class="dash-table-wrap">
+<table class="dash-table">
+<thead>
+<tr>
+<th>Producto</th>
+<th>Total</th>
+<th>Promedio/mes</th>
+<th>Ene → Jun</th>
+<th>Tendencia</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Café Premium</td>
+<td>843</td>
+<td>140.5</td>
+<td>120 → 155</td>
+<td><span class="badge badge-g">+29%</span></td>
+</tr>
+<tr>
+<td>Té Orgánico</td>
+<td>530</td>
+<td>88.3</td>
+<td>80 → 102</td>
+<td><span class="badge badge-g">+28%</span></td>
+</tr>
+<tr>
+<td>Smoothies</td>
+<td>488</td>
+<td>81.3</td>
+<td>45 → 130</td>
+<td><span class="badge badge-g">+189%</span></td>
+</tr>
+<tr>
+<td>Galletas</td>
+<td>1,010</td>
+<td>168.3</td>
+<td>200 → 140</td>
+<td><span class="badge badge-r">–30%</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</section>
+<div class="footer">
+<p class="footer-text">Guía didáctica · Creada con <a href="https://claude.ai">Por Cesalab</a> · con Claude AI</p>
+</div>
+</div>
+<p>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+</p>
+<p><script>
+  const steps = document.querySelectorAll('.step');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach((e,i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  steps.forEach(s => obs.observe(s));
+ 
+  new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+      labels: ['Ene','Feb','Mar','Abr','May','Jun'],
+      datasets: [
+        { data:[120,135,128,145,160,155], borderColor:'#4F8EF7', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2 },
+        { data:[80,75,90,95,88,102],      borderColor:'#00C2FF', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2 },
+        { data:[45,50,68,85,110,130],     borderColor:'#FFB547', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2 },
+        { data:[200,180,175,160,155,140], borderColor:'#FF3B5C', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2 },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ ticks:{ color:'#4A5A90', font:{ size:10, family:'Poppins' } }, grid:{ color:'rgba(255,255,255,0.04)' } },
+        y:{ ticks:{ color:'#4A5A90', font:{ size:10, family:'Poppins' } }, grid:{ color:'rgba(255,255,255,0.04)' }, min:0 }
+      }
+    }
+  });
+ 
+  new Chart(document.getElementById('donutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Café','Té','Smoothies','Galletas'],
+      datasets:[{ data:[843,530,488,1010], backgroundColor:['#4F8EF7','#00C2FF','#FFB547','#FF3B5C'], borderWidth:0 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, cutout:'62%' }
+  });
+</script></p></body></html>
